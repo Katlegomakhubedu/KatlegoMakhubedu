@@ -1,2 +1,232 @@
-print("Hello World")
-the
+# The programs handles contact details of individuals in a text file
+# MKHKAT033
+# 03 May 2024
+
+def path_exists(file_path):
+    """Function to check if a file path exists"""
+    
+    try:
+        file = open(file_path, 'r')  # Attempt to open the file
+        file.close()  # Close the file
+        return True  # Return True if file exists
+    
+    except IOError:  # Handle IOError if file does not exist
+        
+        try:
+            file = open(file_path+'.txt', 'r')  # Attempt to open file with .txt extension
+            file.close()  # Close the file
+            return True  # Return True if file with .txt extension exists
+        
+        except IOError:  # Handle IOError if file with .txt extension also does not exist
+            file = open(file_path+'.txt', 'w')  # Create a new file with .txt extension
+            file.close()  # Close the file
+            return False  # Return False as file was not found
+
+
+
+def add_contact(file_path, name, phone, email):
+    """ Function to add a contact to the contacts file"""
+    
+    if search_contact(file_path, name):  # Check if contact already exists
+        return 'Contact already exists.'
+    
+    file = open(file_path, 'a')       # Open file in append mode
+    file.write(name + ',' + phone + ',' + email + "\n")      # Write contact information to file
+    file.close()      # Close the file
+    
+    return 'Contact added successfully.'     # Return success message
+
+
+def custom_sort(data):
+    """Function to sort the contacts using quick sort algorithm"""
+    
+    return quick_sort(data, 0, len(data) - 1)
+
+
+def quick_sort(data, start, end):
+    """Recursive quick sort function to sort contacts"""
+    
+    if end <= start:
+        return data
+    pivot_index = partition(data, start, end)
+    quick_sort(data, start, pivot_index - 1)
+    quick_sort(data, pivot_index + 1, end)
+    return data
+
+
+def partition(data, start, end):
+    """Partition function to arrange elements around a pivot"""
+    pivot = data[end]
+    i = start - 1
+    for j in range(start, end):
+        if data[j] <= pivot:
+            i += 1
+            data[i], data[j] = data[j], data[i]  # Swap elements
+    data[i + 1], data[end] = data[end], data[i + 1]
+    return i + 1
+
+
+
+def search_contact(file_path, query):
+    """ helper Function to search for a contact in the contacts file"""
+    contacts = custom_sort(read_contacts(file_path))
+    return search_contact2(contacts, query, 0, len(contacts))
+
+ 
+def search_contact2(contacts, query, start, stop):
+    """function for searching contact within a range"""
+    
+    if start >= stop:
+        return False
+    one_third = start + (stop - start) // 3
+    two_thirds = start + 2 * (stop - start) // 3
+    
+    for part in contacts[one_third]:
+        
+        if len(part.split(' ')) == 2:
+            for i in part.split(' '):
+                if match(query, i):
+                    return contacts[one_third]
+                
+        elif match(query, part):
+                    return contacts[one_third]
+            
+                
+    for part in contacts[two_thirds]:
+        
+        if len(part.split(' ')) == 2:
+            for i in part.split(' '):        
+                if match(query, i):
+                    return contacts[two_thirds]
+        elif match(query, part):
+            return contacts[two_thirds] 
+        
+    if contacts[one_third][0] > query:
+        return search_contact2(contacts, query, start, one_third - 1)
+    
+    elif contacts[two_thirds][0] < query:
+        return search_contact2(contacts, query, two_thirds + 1, stop)
+    
+    else:
+        return search_contact2(contacts, query, one_third + 1, two_thirds - 1)
+
+
+
+def read_contacts(file_path):
+    """Function to read contacts from the contacts file"""
+    
+    contacts = []
+    try:
+        file = open(file_path, 'r')
+        for line in file:
+            contact = line.replace("\n", '')
+            contact = contact.split(",")
+            contacts.append(contact)
+        file.close()
+        return contacts
+    except IOError:
+        return contacts  # Return empty list if file not found or unable to read
+
+
+def list_contacts(file_path):
+    """Function to list contacts"""
+    
+    print("=" * 60)
+    print(f"| {'Name':<20} | {'Phone':<15} | {'Email':<25} |")
+    print("=" * 60)
+    for i in range(len(file_path)):
+        print("| ", end='')
+        for x in range(len(file_path[i])):
+            if x == 0:
+                print(f"{file_path[i][x]:<20} |", end=' ')
+            elif x == len(file_path[i]) - 1:
+                print(f"{file_path[i][x]:<25} |")
+            else:
+                print(f"{file_path[i][x]:<15} |", end=' ')
+        print("-" * 60)
+        
+        
+def match(pattern, word):
+    """Checks if a word matches a simple pattern with '?' as a wildcard.
+    """
+
+    if len(pattern) == 1:
+        # Base case 1: Pattern is a single character
+        if pattern == word:  
+            return True  # Exact character match
+
+        elif pattern == '?' and len(word) == 1:  
+            return True  # Wildcard '?' matches any single character
+
+    if pattern[0] == '?':
+        # Wildcard at the beginning of the pattern
+        if len(pattern) != len(word):  
+            return False  # Length mismatch, can't match
+
+    elif pattern[0] != word[0]:
+        # First characters don't match
+        return False
+
+    # Recursive case: Check the rest of the pattern and word 
+    return match(pattern[1:], word[1:]) 
+
+
+def main():
+    file_path = input("Enter the name for the contacts file:\n") 
+    
+    if '.txt' in file_path:  
+        if not path_exists(file_path):  # Check if file exists, if not, create it
+            print(f"Contacts file '{file_path}.txt' created.")
+            
+    else:
+        if not path_exists(file_path):  # Check if file exists, if not, create it
+            print(f"Contacts file '{file_path}.txt' created.")
+        file_path += '.txt'  # Append .txt extension to file path
+        
+    while True:
+        print('')
+        print("1. Add Contact")
+        print("2. Search Contact")
+        print("3. List Contacts")
+        print("4. Exit")
+        choice = input("Enter your choice: ")  # Get user choice
+        
+        if choice == '1':  # Add Contact
+            name = input("Enter name: ").title()  # Get contact name
+            phone = input("Enter phone number: ")  # Get contact phone number
+            email = input("Enter email: ")  # Get contact email
+            
+            result = add_contact(file_path, name, phone, email)  # Add contact to file
+            print(result)  # Print result message
+            
+        elif choice == '2':  # Search Contact
+            query = input("Enter first name, last name, phone number, or email to search: \n")  # Get query
+            
+           
+            
+            contacts = search_contact(file_path, query)  # Search for contact
+            list_contact = []
+            list_contact.append(contacts)
+                
+            if contacts == False:
+                print("No contact found.")  # Print message if contact not found
+                    
+            else:
+                print("Found contact(s):")
+                list_contacts(list_contact)  # Print found contact(s)
+                    
+        elif choice == '3':  
+            contacts = custom_sort(read_contacts(file_path))  # Sort and read contacts
+            print('')
+            print("List of contacts:")            
+            list_contacts(contacts)  # Print list of contacts
+            
+        elif choice == '4':  
+            print("Exiting program.")
+            break 
+        
+        else:
+            print("Invalid choice. Please try again.")  
+
+if __name__ == "__main__":
+    main()  
